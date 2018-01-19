@@ -6,16 +6,16 @@ export function constAndLet() {
     // var iceCream = "chocolate"
     // console.log("declared", iceCream)
 
-  //   iceCream = "strawberry"
-  //   console.log("reassigned?", iceCream)
-  //
-  //   var iceCream = "vanilla"
-  //   console.log("redeclared?", iceCream)
+    // iceCream = "strawberry"
+    // console.log("reassigned?", iceCream)
+  
+    // var iceCream = "vanilla"
+    // console.log("redeclared?", iceCream)
   //
   //
     // gelato = "mango"
     // console.log("hoisted?", gelato)
-    //
+    
     // const gelato = "lemon"
     // console.log("declared", gelato)
 
@@ -28,7 +28,7 @@ export function constAndLet() {
   //
     // froYo = "brownie"
     // console.log("hoisted?", froYo)
-    //
+    
     // let froYo = "cherry"
     // console.log("declared", froYo)
     //
