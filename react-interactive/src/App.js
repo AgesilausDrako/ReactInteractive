@@ -1,8 +1,11 @@
 import React, { Component } from 'react'
-import {Markup, Editor, Container, Column, Row, RuleInput, RuleLabel, StyleInput,
-Button, Document} from './styled'
+import {Markup, Editor, Container, Column, Row, RuleInput, RuleLabel, StyleInput, Button, Document} from './styled'
+import hljs from 'highlight.js'
+import {rando, getRandomPoem} from './utils'
+
 
 class App extends Component {
+
 
   state = {
     editor: "",
@@ -20,19 +23,21 @@ class App extends Component {
     })
   }
 
-  rules = () => {
+  get rules () {
     let {rules} = this.state
     let array = []
     let fields = ['name', 'begin', 'end']
-    for (let i=0; i<rules; i++) {
+    for (let i = 0; i < rules; i++) {
       array.push(
         <Row
-          key={i}>
+          key={i}
+        >
           <Column>
             {fields.map( (field, index) => {
               return (
                 <Column
-                key={index}>
+                  key={index}
+                >
                   <RuleLabel>
                     {field}
                   </RuleLabel>
@@ -53,6 +58,7 @@ class App extends Component {
         </Row>
       )
     }
+
     return array
   }
 
@@ -68,10 +74,6 @@ class App extends Component {
         }
       })
       rules++
-      console.log({
-        rules,
-        ...inputValues
-      })
       return {
         rules,
         ...inputValues
@@ -79,13 +81,93 @@ class App extends Component {
     })
   }
 
+
+  convertToMarkup = (text = "") => {
+    return {
+      __html: hljs.highlightAuto(text).value
+    }
+  }
+
+  language = (newRules) => {
+    return () => ({
+      contains: [
+        ...newRules
+      ]
+    })
+  }
+
+  registerLanguage = (state) => {
+    let {rules} = state
+    let ruleObjects = []
+    for (let i = 0; i < rules; i++) {
+      let newRule = {
+        className: state[`name${i}`],
+        begin: state[`begin${i}`],
+        end: state[`end${i}`]
+      }
+      let {className, begin, end} = newRule
+      if (
+        className.length > 1 &&
+        begin.length > 1 &&
+        end.length > 1
+      ) {
+        begin = new RegExp(begin)
+        end = new RegExp(end)
+        ruleObjects.push(newRule)
+      }
+    }
+    hljs.registerLanguage('language', this.language(ruleObjects))
+    hljs.configure({
+      languages: ['language']
+    })
+  }
+
+  componentWillUpdate(nextProps, nextState) {
+    this.registerLanguage(nextState)
+  }
+
+  prepareStyles = () => {
+    let {rules} = this.state
+    let styles = []
+    for (let i = 0; i < rules; i++) {
+      styles.push(`
+        .hljs-${this.state['name' + i]} {
+          ${this.state['style' + i]}
+        }
+      `)
+    }
+
+    let newStyles = "".concat(styles).replace(",", "")
+
+    while (newStyles.includes('random')) {
+      newStyles = newStyles.replace('random', rando.color())
+    }
+
+    return newStyles
+  }
+
+  getRandomText = async () => {
+    try {
+      let poem = await getRandomPoem()
+      this.handleChange({
+        target: {
+          name: 'editor',
+          value: poem
+        }
+      })
+    } catch (error) {
+      console.log("getRandomPoem error", error)
+    }
+  }
+
+
   render() {
-    let {value} = this.state
-    let {handleChange, newFields, rules} = this
+    let {editor} = this.state
+    let {handleChange, newFields, rules, convertToMarkup, prepareStyles, getRandomText} = this
     return (
       <Container>
         <Column>
-          {rules()}
+          {rules}
           <Button
             onClick={newFields}
           >
@@ -93,16 +175,21 @@ class App extends Component {
           </Button>
         </Column>
         <Column>
-          <Button>
+          <Button
+            onClick={getRandomText}
+          >
             Random Text
           </Button>
           <Document>
             <Editor
-            name={"Editor"}
-            value={value}
-            onChange={handleChange}
+              name={"editor"}
+              value={editor}
+              onChange={handleChange}
             />
-            <Markup />
+            <Markup
+              customStyles={prepareStyles()}
+              dangerouslySetInnerHTML={convertToMarkup(editor)}
+            />
           </Document>
         </Column>
       </Container>
@@ -110,4 +197,4 @@ class App extends Component {
   }
 }
 
-export default App;
+export default App
